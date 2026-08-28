@@ -11,7 +11,7 @@ from gradio import Server
 from gradio.data_classes import FileData
 
 # Your inference code
-from inference import run_inference_script
+from modules.inference import run_inference_script
 
 warnings.filterwarnings("ignore")
 sys.path.append(os.getcwd())
