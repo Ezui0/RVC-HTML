@@ -1,44 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RVC Voice Converter</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background: #1e1e2f;
-            font-family: 'Segoe UI', Roboto, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
-            padding: 20px;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #1a1a2e;
             color: #e0e0e0;
+            padding: 20px;
         }
-        .container {
-            max-width: 1200px;
-            width: 100%;
-            display: flex;
-            flex-wrap: wrap;
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { 
+            text-align: center; 
+            margin-bottom: 30px;
+            color: #b0b0d0;
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 24px;
-            justify-content: center;
         }
         .panel {
-            background: #2a2a3e;
-            border: 2px solid #4a4a6a;
+            background: #24243a;
             border-radius: 12px;
             padding: 20px;
-            flex: 1 1 400px;
-            min-width: 320px;
+            border: 1px solid #3e3e5e;
         }
-        .panel-title {
-            font-weight: 600;
-            color: #b0b0d0;
-            margin-bottom: 16px;
+        .panel h2 {
             font-size: 1.1rem;
-            border-bottom: 2px solid #3e3e5e;
+            color: #c0c0e0;
+            margin-bottom: 16px;
+            border-bottom: 1px solid #3e3e5e;
             padding-bottom: 8px;
         }
         .form-group {
@@ -46,10 +43,9 @@
         }
         .form-group label {
             display: block;
-            color: #b0b0c8;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            color: #a0a0c0;
             margin-bottom: 4px;
-            font-weight: 500;
         }
         .form-group input, .form-group select {
             width: 100%;
@@ -61,17 +57,64 @@
             font-size: 0.9rem;
         }
         .form-group input:focus, .form-group select:focus {
-            outline: 2px solid #7a7aaa;
+            outline: 2px solid #5a7aaf;
             border-color: transparent;
         }
-        .form-row {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
+        .file-input-wrapper {
+            position: relative;
         }
-        .form-row .form-group {
-            flex: 1;
-            min-width: 150px;
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        .file-input-wrapper .file-label {
+            display: block;
+            padding: 10px;
+            background: #2a3a5a;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .file-input-wrapper .file-label:hover {
+            background: #3a4a6a;
+        }
+        .btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+        }
+        .btn-primary {
+            background: #4a6fa5;
+            color: white;
+        }
+        .btn-primary:hover { background: #5a7fb5; }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .btn-success {
+            background: #2a7a4a;
+            color: white;
+            width: 100%;
+        }
+        .btn-success:hover { background: #3a8a5a; }
+        .btn-danger {
+            background: #a04040;
+            color: white;
+        }
+        .btn-danger:hover { background: #b05050; }
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
         }
         .checkbox-group {
             display: flex;
@@ -83,55 +126,25 @@
             width: 18px;
             height: 18px;
             accent-color: #5a7aaf;
-            cursor: pointer;
         }
-        .checkbox-group label {
-            cursor: pointer;
-            color: #c8c8e0;
+        .slider-container {
+            margin: 12px 0;
         }
-        .btn {
-            border: none;
-            border-radius: 8px;
-            padding: 10px 24px;
-            font-weight: 600;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: 0.15s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .btn-primary { background: #4a6fa5; color: white; }
-        .btn-primary:hover { background: #5a7fb5; }
-        .btn-success { background: #2a7a4a; color: white; }
-        .btn-success:hover { background: #3a8a5a; }
-        .btn-danger { background: #a04040; color: white; }
-        .btn-danger:hover { background: #b05050; }
-        .btn:disabled { opacity: 0.5; pointer-events: none; }
-        .btn-block { width: 100%; justify-content: center; }
-        
-        .slider-group {
-            margin-bottom: 16px;
-        }
-        .slider-group label {
+        .slider-container label {
             display: flex;
             justify-content: space-between;
-            color: #b0b0c8;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            color: #a0a0c0;
         }
-        .slider-group input[type="range"] {
+        .slider-container input[type="range"] {
             width: 100%;
-            height: 6px;
-            border-radius: 4px;
             background: #3a3a5a;
+            height: 4px;
+            border-radius: 2px;
             -webkit-appearance: none;
-            appearance: none;
-            padding: 0;
-            border: none;
         }
-        .slider-group input[type="range"]::-webkit-slider-thumb {
+        .slider-container input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            appearance: none;
             width: 16px;
             height: 16px;
             background: #7a9acf;
@@ -139,227 +152,236 @@
             cursor: pointer;
             border: 2px solid #b0c8f0;
         }
-        
-        .hidden { display: none !important; }
-        
-        .status-box {
+        .status {
             padding: 12px;
             border-radius: 6px;
+            margin-top: 12px;
+            min-height: 40px;
             background: #1a1a2e;
-            min-height: 50px;
-            border: 1px solid #4a4a6a;
-            margin-bottom: 12px;
+            border: 1px solid #3e3e5e;
         }
-        .status-box.success { border-color: #2a7a4a; color: #00D612; }
-        .status-box.warning { border-color: #a08030; color: #FBFF00; }
-        .status-box.error { border-color: #a04040; color: #FF0000; }
-        
-        .loading-spinner {
+        .status.success { border-color: #2a7a4a; color: #7aca8a; }
+        .status.error { border-color: #a04040; color: #e07070; }
+        .status.info { border-color: #4a6fa5; color: #8ab0e0; }
+        .status.warning { border-color: #b0a040; color: #e0d070; }
+        .hidden { display: none !important; }
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 10px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .loading-state {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
             padding: 20px;
-            color: #8a8aba;
         }
-        .loading-spinner i { font-size: 1.5rem; }
-        
-        .tip-box {
-            background: #22223a;
+        .tips {
+            background: #1a1a2e;
             padding: 12px;
-            border-radius: 8px;
-            border-left: 3px solid #6a6a8a;
-            font-size: 0.85rem;
-            line-height: 1.6;
-            color: #b0b0c8;
-        }
-        .tip-box b { color: #d0d0ea; }
-        
-        .file-upload-wrapper {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-        .file-upload-wrapper input[type="file"] {
-            display: none;
-        }
-        .file-upload-label {
-            background: #3a4a6a;
-            padding: 8px 16px;
             border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: 0.15s;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
+            font-size: 0.85rem;
+            color: #a0a0c0;
+            line-height: 1.6;
+            margin-top: 16px;
+            border-left: 3px solid #4a6fa5;
         }
-        .file-upload-label:hover { background: #4a5a7a; }
-        
+        .tips strong { color: #c0c0e0; }
         .model-select {
-            max-height: 200px;
-            overflow-y: auto;
+            margin-bottom: 16px;
         }
-        
         @media (max-width: 768px) {
-            .panel { flex: 1 1 100%; }
+            .main-grid { grid-template-columns: 1fr; }
+            .row { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- LEFT PANEL -->
-        <div class="panel">
-            <div class="panel-title"><i class="fas fa-microphone"></i> Audio Input</div>
-            
-            <div class="form-group">
-                <label>Audio File</label>
-                <div class="file-upload-wrapper">
-                    <input type="file" id="audioFile" accept=".wav,.mp3,.flac,.ogg,.opus,.m4a,.mp4,.aac,.alac,.wma,.aiff,.webm,.ac3" />
-                    <label class="file-upload-label" for="audioFile">
-                        <i class="fas fa-upload"></i> Select File
-                    </label>
-                    <span id="fileName" style="color: #8a8aba; font-size: 0.9rem;">No file selected</span>
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label>Output Path</label>
-                <input type="text" id="outputPath" placeholder="output_RVC.wav" />
-            </div>
-            
-            <div class="panel-title" style="margin-top: 20px;"><i class="fas fa-sliders-h"></i> Conversion Settings</div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label>F0 Method</label>
-                    <select id="f0Method"></select>
-                </div>
-                <div class="form-group">
-                    <label>Embedder</label>
-                    <select id="embedder"></select>
-                </div>
-            </div>
-            
-            <div class="slider-group">
-                <label>Pitch <span id="pitchVal">0</span></label>
-                <input type="range" id="pitchSlider" min="-20" max="20" value="0" step="1" />
-            </div>
-            
-            <button class="btn btn-success btn-block" id="convertBtn">
-                <i class="fas fa-play"></i> Convert
-            </button>
-            
-            <div id="loadingState" class="hidden loading-spinner">
-                <i class="fas fa-spinner fa-spin"></i>
-                <span>Converting... Please wait</span>
-            </div>
-            
-            <div class="status-box" id="statusBox">Ready</div>
-            
-            <div class="tip-box">
-                <b>Tips:</b><br>
-                1. RMVPE provides good quality and speed (recommended).<br>
-                2. Crepe models offer high quality but are slower.<br>
-                3. Harvest is high quality but slow and may have errors.<br>
-                4. Yin/pYin are fast but lower quality.<br>
-                5. Use AutoTune for pitch correction.<br>
-                6. Split Audio helps with long files.
-            </div>
-        </div>
+        <h1>🎤 RVC Voice Converter</h1>
         
-        <!-- RIGHT PANEL -->
-        <div class="panel">
-            <div class="panel-title"><i class="fas fa-cogs"></i> Model & Controls</div>
-            
-            <div style="display: flex; gap: 8px; margin-bottom: 16px;">
-                <button class="btn btn-danger" id="refreshBtn" style="flex: 1;">
-                    <i class="fas fa-sync"></i> Refresh Models
+        <div class="main-grid">
+            <!-- Left Panel: Input/Output -->
+            <div class="panel">
+                <h2>Audio &amp; Conversion</h2>
+                
+                <div class="form-group file-input-wrapper">
+                    <label>Input Audio</label>
+                    <div class="file-label" id="fileLabel">
+                        <i class="fas fa-upload"></i> Choose audio file
+                    </div>
+                    <input type="file" id="audioFile" accept=".wav,.mp3,.flac,.ogg,.opus,.m4a,.mp4,.aac,.alac,.wma,.aiff,.webm,.ac3">
+                </div>
+                
+                <div class="form-group">
+                    <label>Output Path</label>
+                    <input type="text" id="outputPath" placeholder="output_converted.wav" readonly>
+                </div>
+                
+                <div class="row">
+                    <div class="form-group">
+                        <label>F0 Method</label>
+                        <select id="f0Method">
+                            <option value="rmvpe">rmvpe</option>
+                            <option value="pm">pm</option>
+                            <option value="dio">dio</option>
+                            <option value="harvest">harvest</option>
+                            <option value="crepe-tiny">crepe-tiny</option>
+                            <option value="crepe-small">crepe-small</option>
+                            <option value="crepe-medium">crepe-medium</option>
+                            <option value="crepe-large">crepe-large</option>
+                            <option value="crepe-full">crepe-full</option>
+                            <option value="fcpe">fcpe</option>
+                            <option value="yin">yin</option>
+                            <option value="pyin">pyin</option>
+                            <option value="swipe">swipe</option>
+                            <option value="mangio-crepe-tiny">mangio-crepe-tiny</option>
+                            <option value="mangio-crepe-small">mangio-crepe-small</option>
+                            <option value="mangio-crepe-medium">mangio-crepe-medium</option>
+                            <option value="mangio-crepe-large">mangio-crepe-large</option>
+                            <option value="mangio-crepe-full">mangio-crepe-full</option>
+                            <option value="rmvpe-legacy">rmvpe-legacy</option>
+                            <option value="fcpe-legacy">fcpe-legacy</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Embedder</label>
+                        <select id="embedder">
+                            <option value="hubert_base">hubert_base</option>
+                            <option value="contentvec_base">contentvec_base</option>
+                            <option value="japanese_hubert_base">japanese_hubert_base</option>
+                            <option value="korean_hubert_base">korean_hubert_base</option>
+                            <option value="chinese_hubert_base">chinese_hubert_base</option>
+                            <option value="portuguese_hubert_base">portuguese_hubert_base</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="slider-container">
+                    <label>Pitch <span id="pitchValue">0</span></label>
+                    <input type="range" id="pitch" min="-20" max="20" value="0" step="1">
+                </div>
+                
+                <button class="btn btn-success" id="convertBtn">
+                    <i class="fas fa-play"></i> Convert
                 </button>
+                
+                <div id="status" class="status info">Ready</div>
+                <div id="loadingState" class="loading-state hidden">
+                    <div class="spinner"></div>
+                    <span>Converting... Please wait</span>
+                </div>
             </div>
             
-            <div class="form-group">
-                <label>Model Path</label>
-                <select id="modelPath" class="model-select"></select>
-            </div>
-            
-            <div class="form-group">
-                <label>Index Path</label>
-                <input type="text" id="indexPath" placeholder="Optional .index file" />
-            </div>
-            
-            <div class="panel-title" style="margin-top: 20px;"><i class="fas fa-tune"></i> Advanced Settings</div>
-            
-            <div class="checkbox-group">
-                <input type="checkbox" id="isHalf" />
-                <label>IS HALF (GPU only)</label>
-            </div>
-            <div class="checkbox-group">
-                <input type="checkbox" id="noiseReduce" />
-                <label>Noise Reduce</label>
-            </div>
-            <div class="checkbox-group">
-                <input type="checkbox" id="autotune" />
-                <label>AutoTune</label>
-            </div>
-            <div class="checkbox-group">
-                <input type="checkbox" id="splitAudio" />
-                <label>Split Audio</label>
-            </div>
-            
-            <div class="slider-group">
-                <label>Index Strength <span id="indexStrengthVal">0.50</span></label>
-                <input type="range" id="indexStrength" min="0" max="1" step="0.01" value="0.5" />
-            </div>
-            
-            <div class="slider-group">
-                <label>Protecting <span id="protectVal">0.33</span></label>
-                <input type="range" id="protect" min="0" max="1" step="0.01" value="0.33" />
-            </div>
-            
-            <div class="slider-group">
-                <label>RMS Mix Rate <span id="rmsVal">1.0</span></label>
-                <input type="range" id="rmsMixRate" min="0" max="1" step="0.1" value="1" />
-            </div>
-            
-            <div class="slider-group hidden" id="hopLengthBox">
-                <label>Hop Length <span id="hopVal">128</span></label>
-                <input type="range" id="hopLength" min="64" max="512" step="32" value="128" />
-            </div>
-            
-            <div class="slider-group hidden" id="cleanStrengthBox">
-                <label>Clean Strength <span id="cleanVal">0.50</span></label>
-                <input type="range" id="cleanStrength" min="0" max="1" step="0.1" value="0.5" />
-            </div>
-            
-            <div class="slider-group hidden" id="autotuneStrengthBox">
-                <label>AutoTune Strength <span id="autotuneVal">1.0</span></label>
-                <input type="range" id="autotuneStrength" min="0" max="1" step="0.1" value="1" />
+            <!-- Right Panel: Model & Settings -->
+            <div class="panel">
+                <h2>Model &amp; Settings</h2>
+                
+                <div class="model-select">
+                    <button class="btn btn-danger" id="refreshBtn" style="width:100%; margin-bottom:10px;">
+                        <i class="fas fa-sync"></i> Refresh Models
+                    </button>
+                    <div class="form-group">
+                        <label>Model Path</label>
+                        <select id="modelPath">
+                            <option value="">— Select model —</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Index Path</label>
+                        <input type="text" id="indexPath" placeholder="Auto-detected or manual">
+                    </div>
+                </div>
+                
+                <div class="row" style="margin-bottom:12px;">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="isHalf"> IS HALF
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="noiseReduce"> Noise Reduce
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="autotune"> AutoTune
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="splitAudio"> Split Audio
+                    </div>
+                </div>
+                
+                <div class="slider-container">
+                    <label>Index Strength <span id="indexStrengthVal">0.50</span></label>
+                    <input type="range" id="indexStrength" min="0" max="1" step="0.01" value="0.5">
+                </div>
+                
+                <div class="slider-container">
+                    <label>Protect <span id="protectVal">0.33</span></label>
+                    <input type="range" id="protect" min="0" max="1" step="0.01" value="0.33">
+                </div>
+                
+                <div class="slider-container">
+                    <label>RMS Mix Rate <span id="rmsVal">1.0</span></label>
+                    <input type="range" id="rmsMixRate" min="0" max="1" step="0.1" value="1">
+                </div>
+                
+                <div class="slider-container" id="hopLengthBox">
+                    <label>Hop Length <span id="hopVal">128</span></label>
+                    <input type="range" id="hopLength" min="64" max="512" step="32" value="128">
+                </div>
+                
+                <div class="slider-container hidden" id="cleanStrengthBox">
+                    <label>Clean Strength <span id="cleanVal">0.50</span></label>
+                    <input type="range" id="cleanStrength" min="0" max="1" step="0.1" value="0.5">
+                </div>
+                
+                <div class="slider-container hidden" id="autotuneStrengthBox">
+                    <label>AutoTune Strength <span id="autotuneVal">1.0</span></label>
+                    <input type="range" id="autotuneStrength" min="0" max="1" step="0.1" value="1">
+                </div>
+                
+                <div class="tips">
+                    <strong>Tips:</strong><br>
+                    1. RMVPE provides good quality and speed — best choice.<br>
+                    2. Crepe models have additional filters for stability.<br>
+                    3. Harvest is high quality but slower.<br>
+                    4. Split Audio helps with long recordings.<br>
+                    5. Noise Reduce cleans background noise (requires <code>noisereduce</code>).
+                </div>
             </div>
         </div>
     </div>
 
-    <script>
-        const API_BASE = 'http://localhost:8000';
+    <!-- Gradio JS Client -->
+    <script type="importmap">
+        {
+            "imports": {
+                "@gradio/client": "https://cdn.jsdelivr.net/npm/@gradio/client@1.0.0/dist/index.min.js"
+            }
+        }
+    </script>
+    
+    <script type="module">
+        import { Client, handle_file } from '@gradio/client';
         
         // DOM refs
         const audioFile = document.getElementById('audioFile');
-        const fileName = document.getElementById('fileName');
+        const fileLabel = document.getElementById('fileLabel');
         const outputPath = document.getElementById('outputPath');
-        const f0Method = document.getElementById('f0Method');
-        const embedder = document.getElementById('embedder');
-        const pitchSlider = document.getElementById('pitchSlider');
-        const pitchVal = document.getElementById('pitchVal');
         const convertBtn = document.getElementById('convertBtn');
+        const status = document.getElementById('status');
         const loadingState = document.getElementById('loadingState');
-        const statusBox = document.getElementById('statusBox');
-        const refreshBtn = document.getElementById('refreshBtn');
         const modelPath = document.getElementById('modelPath');
         const indexPath = document.getElementById('indexPath');
-        const isHalf = document.getElementById('isHalf');
-        const noiseReduce = document.getElementById('noiseReduce');
-        const autotune = document.getElementById('autotune');
-        const splitAudio = document.getElementById('splitAudio');
+        const refreshBtn = document.getElementById('refreshBtn');
+        
+        // Sliders
+        const pitch = document.getElementById('pitch');
+        const pitchValue = document.getElementById('pitchValue');
         const indexStrength = document.getElementById('indexStrength');
         const indexStrengthVal = document.getElementById('indexStrengthVal');
         const protect = document.getElementById('protect');
@@ -372,21 +394,82 @@
         const cleanVal = document.getElementById('cleanVal');
         const autotuneStrength = document.getElementById('autotuneStrength');
         const autotuneVal = document.getElementById('autotuneVal');
+        
+        // Checkboxes
+        const isHalf = document.getElementById('isHalf');
+        const noiseReduce = document.getElementById('noiseReduce');
+        const autotune = document.getElementById('autotune');
+        const splitAudio = document.getElementById('splitAudio');
+        const f0Method = document.getElementById('f0Method');
+        const embedder = document.getElementById('embedder');
+        
+        // Conditional boxes
         const hopLengthBox = document.getElementById('hopLengthBox');
         const cleanStrengthBox = document.getElementById('cleanStrengthBox');
         const autotuneStrengthBox = document.getElementById('autotuneStrengthBox');
-
-        // Helper functions
-        function setStatus(message, type = 'info') {
-            statusBox.textContent = message;
-            statusBox.className = 'status-box';
-            if (type === 'success') statusBox.classList.add('success');
-            else if (type === 'warning') statusBox.classList.add('warning');
-            else if (type === 'error') statusBox.classList.add('error');
+        
+        let client = null;
+        let selectedFile = null;
+        
+        // Connect to Gradio server
+        async function initClient() {
+            try {
+                client = await Client.connect(window.location.origin);
+                setStatus('Connected to server', 'info');
+                await refreshModels();
+            } catch (e) {
+                setStatus('Failed to connect to server', 'error');
+                console.error(e);
+            }
         }
-
-        function updateSliderLabels() {
-            pitchVal.textContent = pitchSlider.value;
+        
+        // Refresh model list
+        async function refreshModels() {
+            if (!client) return;
+            try {
+                const result = await client.predict('/list_models', {});
+                const models = result.data[0];
+                const current = modelPath.value;
+                modelPath.innerHTML = '<option value="">— Select model —</option>';
+                models.forEach(m => {
+                    const opt = document.createElement('option');
+                    opt.value = m;
+                    opt.textContent = m;
+                    modelPath.appendChild(opt);
+                });
+                if (models.includes(current)) modelPath.value = current;
+                setStatus(`Loaded ${models.length} models`, 'info');
+            } catch (e) {
+                setStatus('Failed to load models', 'error');
+                console.error(e);
+            }
+        }
+        
+        // Find index for selected model
+        async function findIndexForModel(model) {
+            if (!model || !client) return;
+            try {
+                const result = await client.predict('/find_index', { model_path: model });
+                const idx = result.data[0];
+                if (idx) {
+                    indexPath.value = idx;
+                } else {
+                    indexPath.value = '';
+                }
+            } catch (e) {
+                indexPath.value = '';
+            }
+        }
+        
+        // Set status message
+        function setStatus(msg, type = 'info') {
+            status.textContent = msg;
+            status.className = `status ${type}`;
+        }
+        
+        // Update slider displays
+        function updateSliderDisplay() {
+            pitchValue.textContent = pitch.value;
             indexStrengthVal.textContent = parseFloat(indexStrength.value).toFixed(2);
             protectVal.textContent = parseFloat(protect.value).toFixed(2);
             rmsVal.textContent = parseFloat(rmsMixRate.value).toFixed(1);
@@ -394,231 +477,135 @@
             cleanVal.textContent = parseFloat(cleanStrength.value).toFixed(2);
             autotuneVal.textContent = parseFloat(autotuneStrength.value).toFixed(2);
         }
-
-        function refreshSliderVisibility() {
-            const method = f0Method.value;
-            const hopLengthMethods = [
-                'mangio-crepe-tiny', 'mangio-crepe-small', 'mangio-crepe-medium',
-                'mangio-crepe-large', 'mangio-crepe-full', 'fcpe', 'fcpe-legacy',
-                'yin', 'pyin'
-            ];
+        
+        // Toggle conditional slider visibility
+        function toggleConditionalSliders() {
+            // Hop length visibility
+            const hopMethods = ['mangio-crepe-tiny', 'mangio-crepe-small', 'mangio-crepe-medium', 
+                               'mangio-crepe-large', 'mangio-crepe-full', 'fcpe', 'fcpe-legacy', 
+                               'yin', 'pyin'];
+            hopLengthBox.style.display = hopMethods.includes(f0Method.value) ? 'block' : 'none';
             
-            hopLengthBox.classList.toggle('hidden', !hopLengthMethods.includes(method));
-            cleanStrengthBox.classList.toggle('hidden', !noiseReduce.checked);
-            autotuneStrengthBox.classList.toggle('hidden', !autotune.checked);
+            // Clean strength visibility
+            cleanStrengthBox.style.display = noiseReduce.checked ? 'block' : 'none';
+            
+            // Autotune strength visibility
+            autotuneStrengthBox.style.display = autotune.checked ? 'block' : 'none';
         }
-
-        // Load models from API
-        async function loadModels() {
-            try {
-                const response = await fetch(`${API_BASE}/models`);
-                if (!response.ok) throw new Error('Failed to load models');
-                const data = await response.json();
-                
-                const current = modelPath.value;
-                modelPath.innerHTML = '<option value="">— Select model —</option>';
-                
-                data.models.forEach(model => {
-                    const opt = document.createElement('option');
-                    opt.value = model.path;
-                    opt.textContent = model.name;
-                    if (model.index_path) opt.dataset.index = model.index_path;
-                    modelPath.appendChild(opt);
-                });
-                
-                if (current && Array.from(modelPath.options).some(o => o.value === current)) {
-                    modelPath.value = current;
-                }
-                
-                return data.models;
-            } catch (error) {
-                console.error('Error loading models:', error);
-                setStatus('Failed to load models: ' + error.message, 'error');
-                return [];
-            }
-        }
-
-        // Load F0 methods
-        async function loadF0Methods() {
-            try {
-                const response = await fetch(`${API_BASE}/f0_methods`);
-                if (!response.ok) throw new Error('Failed to load F0 methods');
-                const data = await response.json();
-                
-                f0Method.innerHTML = '';
-                data.methods.forEach(method => {
-                    const opt = document.createElement('option');
-                    opt.value = method;
-                    opt.textContent = method;
-                    if (method === 'rmvpe') opt.selected = true;
-                    f0Method.appendChild(opt);
-                });
-            } catch (error) {
-                console.error('Error loading F0 methods:', error);
-            }
-        }
-
-        // Load embedders
-        async function loadEmbedders() {
-            try {
-                const response = await fetch(`${API_BASE}/embedders`);
-                if (!response.ok) throw new Error('Failed to load embedders');
-                const data = await response.json();
-                
-                embedder.innerHTML = '';
-                data.embedders.forEach(emb => {
-                    const opt = document.createElement('option');
-                    opt.value = emb;
-                    opt.textContent = emb;
-                    if (emb === 'hubert_base') opt.selected = true;
-                    embedder.appendChild(opt);
-                });
-            } catch (error) {
-                console.error('Error loading embedders:', error);
-            }
-        }
-
+        
         // Handle file selection
-        audioFile.addEventListener('change', function() {
-            if (this.files.length > 0) {
-                fileName.textContent = this.files[0].name;
-                const baseName = this.files[0].name.replace(/\.[^.]+$/, '');
-                outputPath.value = `${baseName}_RVC.wav`;
-                setStatus(`Selected: ${this.files[0].name}`, 'info');
+        audioFile.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                selectedFile = e.target.files[0];
+                fileLabel.textContent = `📁 ${selectedFile.name}`;
+                outputPath.value = selectedFile.name.replace(/\.[^.]+$/, '') + '_converted.wav';
+                setStatus(`File loaded: ${selectedFile.name}`, 'info');
             }
         });
-
-        // Model selection auto-fills index
-        modelPath.addEventListener('change', function() {
-            const selected = this.options[this.selectedIndex];
-            if (selected && selected.dataset.index) {
-                indexPath.value = selected.dataset.index;
-            } else {
-                // Try to find index in same directory
-                if (this.value) {
-                    const dir = this.value.substring(0, this.value.lastIndexOf('/'));
-                    // We'll let the API handle index detection
-                }
-                indexPath.value = '';
+        
+        // Model selection
+        modelPath.addEventListener('change', async () => {
+            await findIndexForModel(modelPath.value);
+        });
+        
+        // Refresh button
+        refreshBtn.addEventListener('click', async () => {
+            refreshBtn.disabled = true;
+            refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+            await refreshModels();
+            refreshBtn.innerHTML = '<i class="fas fa-sync"></i> Refresh Models';
+            refreshBtn.disabled = false;
+        });
+        
+        // Slider events
+        [pitch, indexStrength, protect, rmsMixRate, hopLength, cleanStrength, autotuneStrength].forEach(el => {
+            el.addEventListener('input', updateSliderDisplay);
+        });
+        
+        // Toggle events
+        f0Method.addEventListener('change', toggleConditionalSliders);
+        noiseReduce.addEventListener('change', toggleConditionalSliders);
+        autotune.addEventListener('change', toggleConditionalSliders);
+        
+        // Convert button
+        convertBtn.addEventListener('click', async () => {
+            if (!client) {
+                setStatus('Not connected to server', 'error');
+                return;
             }
-        });
-
-        // Refresh models
-        refreshBtn.addEventListener('click', async function() {
-            this.disabled = true;
-            setStatus('Refreshing models...', 'info');
-            await loadModels();
-            this.disabled = false;
-            setStatus('Models refreshed', 'success');
-        });
-
-        // Convert
-        convertBtn.addEventListener('click', async function() {
-            const file = audioFile.files[0];
-            if (!file) {
+            
+            if (!selectedFile) {
                 setStatus('Please select an audio file', 'warning');
                 return;
             }
             
-            const model = modelPath.value;
-            if (!model) {
+            if (!modelPath.value) {
                 setStatus('Please select a model', 'warning');
                 return;
             }
             
-            // Prepare form data
-            const formData = new FormData();
-            formData.append('audio', file);
-            formData.append('model_path', model);
-            formData.append('index_path', indexPath.value || '');
-            formData.append('pitch', pitchSlider.value);
-            formData.append('filter_radius', '3');
-            formData.append('index_rate', indexStrength.value);
-            formData.append('volume_envelope', rmsMixRate.value);
-            formData.append('protect', protect.value);
-            formData.append('hop_length', hopLength.value);
-            formData.append('f0_method', f0Method.value);
-            formData.append('embedder_model', embedder.value);
-            formData.append('export_format', 'wav');
-            formData.append('resample_sr', '0');
-            formData.append('f0_autotune', autotune.checked);
-            formData.append('f0_autotune_strength', autotuneStrength.value);
-            formData.append('split_audio', splitAudio.checked);
-            formData.append('clean_audio', noiseReduce.checked);
-            formData.append('clean_strength', cleanStrength.value);
-            formData.append('is_half', isHalf.checked);
-            formData.append('cpu_mode', 'false');
-            
-            // UI feedback
-            this.disabled = true;
+            // Disable UI
+            convertBtn.disabled = true;
             loadingState.classList.remove('hidden');
-            setStatus('Converting... please wait', 'info');
+            setStatus('Processing...', 'info');
             
             try {
-                const response = await fetch(`${API_BASE}/convert`, {
-                    method: 'POST',
-                    body: formData
-                });
+                // Prepare parameters
+                const params = {
+                    audio_file: handle_file(selectedFile),
+                    model_path: modelPath.value,
+                    index_path: indexPath.value || '',
+                    pitch: parseInt(pitch.value),
+                    f0_method: f0Method.value,
+                    embedder_model: embedder.value,
+                    index_rate: parseFloat(indexStrength.value),
+                    volume_envelope: parseFloat(rmsMixRate.value),
+                    protect: parseFloat(protect.value),
+                    hop_length: parseInt(hopLength.value),
+                    filter_radius: 3,
+                    export_format: 'wav',
+                    resample_sr: 0,
+                    f0_autotune: autotune.checked,
+                    f0_autotune_strength: parseFloat(autotuneStrength.value),
+                    split_audio: splitAudio.checked,
+                    clean_audio: noiseReduce.checked,
+                    clean_strength: parseFloat(cleanStrength.value),
+                    is_half: isHalf.checked,
+                    cpu_mode: false
+                };
                 
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.detail || 'Conversion failed');
+                // Call API
+                const result = await client.predict('/convert_audio', params);
+                const outputFile = result.data[0];
+                
+                // Download result
+                if (outputFile && outputFile.url) {
+                    const a = document.createElement('a');
+                    a.href = outputFile.url;
+                    a.download = outputPath.value || 'converted.wav';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    setStatus(`✅ Conversion complete! Downloaded: ${a.download}`, 'success');
+                } else {
+                    setStatus('Conversion completed but no output file', 'warning');
                 }
                 
-                // Download the converted file
-                const blob = await response.blob();
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `converted_${file.name.replace(/\.[^.]+$/, '.wav')}`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                
-                setStatus('Conversion completed successfully!', 'success');
-            } catch (error) {
-                console.error('Conversion error:', error);
-                setStatus('Error: ' + error.message, 'error');
+            } catch (e) {
+                setStatus(`❌ Error: ${e.message || 'Unknown error'}`, 'error');
+                console.error(e);
             } finally {
-                this.disabled = false;
+                convertBtn.disabled = false;
                 loadingState.classList.add('hidden');
             }
         });
-
-        // Event listeners for sliders
-        [pitchSlider, indexStrength, protect, rmsMixRate, hopLength, cleanStrength, autotuneStrength].forEach(slider => {
-            slider.addEventListener('input', updateSliderLabels);
-        });
         
-        f0Method.addEventListener('change', refreshSliderVisibility);
-        noiseReduce.addEventListener('change', refreshSliderVisibility);
-        autotune.addEventListener('change', refreshSliderVisibility);
-
         // Initialize
-        async function init() {
-            await Promise.all([
-                loadF0Methods(),
-                loadEmbedders(),
-                loadModels()
-            ]);
-            updateSliderLabels();
-            refreshSliderVisibility();
-            setStatus('Ready. Select audio and model to begin.', 'info');
-            
-            // Check API health
-            try {
-                const response = await fetch(`${API_BASE}/`);
-                if (response.ok) {
-                    console.log('API is running');
-                }
-            } catch (error) {
-                console.error('API not reachable:', error);
-                setStatus('⚠️ API not reachable. Make sure server is running on port 8000', 'error');
-            }
-        }
+        updateSliderDisplay();
+        toggleConditionalSliders();
+        initClient();
         
-        init();
+        console.log('RVC UI initialized with Gradio Server');
     </script>
 </body>
 </html>
