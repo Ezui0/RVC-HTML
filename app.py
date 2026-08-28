@@ -123,4 +123,4 @@ async def get_frontend():
 
 # Run the server
 if __name__ == "__main__":
-    app.launch(show_error=True, server_name="0.0.0.0", server_port=7860)
+    app.launch(show_error=True, server_name="0.0.0.0", server_port=7860, share=True)
