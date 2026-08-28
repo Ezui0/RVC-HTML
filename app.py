@@ -9,7 +9,6 @@ from pathlib import Path
 from fastapi.responses import HTMLResponse
 from gradio import Server
 from gradio.data_classes import FileData
-import spaces
 
 # Your inference code
 from inference import run_inference_script
@@ -33,7 +32,6 @@ def get_model(model_path):
     return MODEL_CACHE[model_path]
 
 @app.api(name="convert_audio")
-@spaces.GPU  # For ZeroGPU support on Hugging Face Spaces
 def convert_audio(
     audio_file: FileData,
     model_path: str,
