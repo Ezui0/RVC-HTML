@@ -8,7 +8,7 @@
 
 ## Google Colab
 
-**Ipynb**: [RVC-Ipywidgets](https://colab.research.google.com/github/Ezui0/RVC-Ipywidgets/blob/main/RVC-Ipywidgets.ipynb)
+**Ipynb**: [RVC-Ipywidgets](https://colab.research.google.com/github/Ezui0/RVC-HTML/blob/main/RVC.ipynb)
 
 ## Disclaimer
 - The RVC GUI project is developed for research, educational, and personal entertainment purposes. I do not encourage, nor do I take any responsibility for, any misuse of voice conversion technology for fraudulent purposes, identity impersonation, or violations of privacy or copyright belonging to any individual or organization.
