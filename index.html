@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RVC Voice Converter</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: #1e1e2f;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 20px;
+            color: #e0e0e0;
+        }
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            justify-content: center;
+        }
+        .panel {
+            background: #2a2a3e;
+            border: 2px solid #4a4a6a;
+            border-radius: 12px;
+            padding: 20px;
+            flex: 1 1 400px;
+            min-width: 320px;
+        }
+        .panel-title {
+            font-weight: 600;
+            color: #b0b0d0;
+            margin-bottom: 16px;
+            font-size: 1.1rem;
+            border-bottom: 2px solid #3e3e5e;
+            padding-bottom: 8px;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            color: #b0b0c8;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px 12px;
+            background: #1c1c2e;
+            border: 1px solid #4a4a6a;
+            border-radius: 6px;
+            color: #eee;
+            font-size: 0.9rem;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: 2px solid #7a7aaa;
+            border-color: transparent;
+        }
+        .form-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .form-row .form-group {
+            flex: 1;
+            min-width: 150px;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #5a7aaf;
+            cursor: pointer;
+        }
+        .checkbox-group label {
+            cursor: pointer;
+            color: #c8c8e0;
+        }
+        .btn {
+            border: none;
+            border-radius: 8px;
+            padding: 10px 24px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary { background: #4a6fa5; color: white; }
+        .btn-primary:hover { background: #5a7fb5; }
+        .btn-success { background: #2a7a4a; color: white; }
+        .btn-success:hover { background: #3a8a5a; }
+        .btn-danger { background: #a04040; color: white; }
+        .btn-danger:hover { background: #b05050; }
+        .btn:disabled { opacity: 0.5; pointer-events: none; }
+        .btn-block { width: 100%; justify-content: center; }
+        
+        .slider-group {
+            margin-bottom: 16px;
+        }
+        .slider-group label {
+            display: flex;
+            justify-content: space-between;
+            color: #b0b0c8;
+            font-size: 0.9rem;
+        }
+        .slider-group input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 4px;
+            background: #3a3a5a;
+            -webkit-appearance: none;
+            appearance: none;
+            padding: 0;
+            border: none;
+        }
+        .slider-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #7a9acf;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid #b0c8f0;
+        }
+        
+        .hidden { display: none !important; }
+        
+        .status-box {
+            padding: 12px;
+            border-radius: 6px;
+            background: #1a1a2e;
+            min-height: 50px;
+            border: 1px solid #4a4a6a;
+            margin-bottom: 12px;
+        }
+        .status-box.success { border-color: #2a7a4a; color: #00D612; }
+        .status-box.warning { border-color: #a08030; color: #FBFF00; }
+        .status-box.error { border-color: #a04040; color: #FF0000; }
+        
+        .loading-spinner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 20px;
+            color: #8a8aba;
+        }
+        .loading-spinner i { font-size: 1.5rem; }
+        
+        .tip-box {
+            background: #22223a;
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 3px solid #6a6a8a;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: #b0b0c8;
+        }
+        .tip-box b { color: #d0d0ea; }
+        
+        .file-upload-wrapper {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .file-upload-wrapper input[type="file"] {
+            display: none;
+        }
+        .file-upload-label {
+            background: #3a4a6a;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .file-upload-label:hover { background: #4a5a7a; }
+        
+        .model-select {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .panel { flex: 1 1 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- LEFT PANEL -->
+        <div class="panel">
+            <div class="panel-title"><i class="fas fa-microphone"></i> Audio Input</div>
+            
+            <div class="form-group">
+                <label>Audio File</label>
+                <div class="file-upload-wrapper">
+                    <input type="file" id="audioFile" accept=".wav,.mp3,.flac,.ogg,.opus,.m4a,.mp4,.aac,.alac,.wma,.aiff,.webm,.ac3" />
+                    <label class="file-upload-label" for="audioFile">
+                        <i class="fas fa-upload"></i> Select File
+                    </label>
+                    <span id="fileName" style="color: #8a8aba; font-size: 0.9rem;">No file selected</span>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Output Path</label>
+                <input type="text" id="outputPath" placeholder="output_RVC.wav" />
+            </div>
+            
+            <div class="panel-title" style="margin-top: 20px;"><i class="fas fa-sliders-h"></i> Conversion Settings</div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>F0 Method</label>
+                    <select id="f0Method"></select>
+                </div>
+                <div class="form-group">
+                    <label>Embedder</label>
+                    <select id="embedder"></select>
+                </div>
+            </div>
+            
+            <div class="slider-group">
+                <label>Pitch <span id="pitchVal">0</span></label>
+                <input type="range" id="pitchSlider" min="-20" max="20" value="0" step="1" />
+            </div>
+            
+            <button class="btn btn-success btn-block" id="convertBtn">
+                <i class="fas fa-play"></i> Convert
+            </button>
+            
+            <div id="loadingState" class="hidden loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+                <span>Converting... Please wait</span>
+            </div>
+            
+            <div class="status-box" id="statusBox">Ready</div>
+            
+            <div class="tip-box">
+                <b>Tips:</b><br>
+                1. RMVPE provides good quality and speed (recommended).<br>
+                2. Crepe models offer high quality but are slower.<br>
+                3. Harvest is high quality but slow and may have errors.<br>
+                4. Yin/pYin are fast but lower quality.<br>
+                5. Use AutoTune for pitch correction.<br>
+                6. Split Audio helps with long files.
+            </div>
+        </div>
+        
+        <!-- RIGHT PANEL -->
+        <div class="panel">
+            <div class="panel-title"><i class="fas fa-cogs"></i> Model & Controls</div>
+            
+            <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+                <button class="btn btn-danger" id="refreshBtn" style="flex: 1;">
+                    <i class="fas fa-sync"></i> Refresh Models
+                </button>
+            </div>
+            
+            <div class="form-group">
+                <label>Model Path</label>
+                <select id="modelPath" class="model-select"></select>
+            </div>
+            
+            <div class="form-group">
+                <label>Index Path</label>
+                <input type="text" id="indexPath" placeholder="Optional .index file" />
+            </div>
+            
+            <div class="panel-title" style="margin-top: 20px;"><i class="fas fa-tune"></i> Advanced Settings</div>
+            
+            <div class="checkbox-group">
+                <input type="checkbox" id="isHalf" />
+                <label>IS HALF (GPU only)</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="noiseReduce" />
+                <label>Noise Reduce</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="autotune" />
+                <label>AutoTune</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="splitAudio" />
+                <label>Split Audio</label>
+            </div>
+            
+            <div class="slider-group">
+                <label>Index Strength <span id="indexStrengthVal">0.50</span></label>
+                <input type="range" id="indexStrength" min="0" max="1" step="0.01" value="0.5" />
+            </div>
+            
+            <div class="slider-group">
+                <label>Protecting <span id="protectVal">0.33</span></label>
+                <input type="range" id="protect" min="0" max="1" step="0.01" value="0.33" />
+            </div>
+            
+            <div class="slider-group">
+                <label>RMS Mix Rate <span id="rmsVal">1.0</span></label>
+                <input type="range" id="rmsMixRate" min="0" max="1" step="0.1" value="1" />
+            </div>
+            
+            <div class="slider-group hidden" id="hopLengthBox">
+                <label>Hop Length <span id="hopVal">128</span></label>
+                <input type="range" id="hopLength" min="64" max="512" step="32" value="128" />
+            </div>
+            
+            <div class="slider-group hidden" id="cleanStrengthBox">
+                <label>Clean Strength <span id="cleanVal">0.50</span></label>
+                <input type="range" id="cleanStrength" min="0" max="1" step="0.1" value="0.5" />
+            </div>
+            
+            <div class="slider-group hidden" id="autotuneStrengthBox">
+                <label>AutoTune Strength <span id="autotuneVal">1.0</span></label>
+                <input type="range" id="autotuneStrength" min="0" max="1" step="0.1" value="1" />
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        
+        // DOM refs
+        const audioFile = document.getElementById('audioFile');
+        const fileName = document.getElementById('fileName');
+        const outputPath = document.getElementById('outputPath');
+        const f0Method = document.getElementById('f0Method');
+        const embedder = document.getElementById('embedder');
+        const pitchSlider = document.getElementById('pitchSlider');
+        const pitchVal = document.getElementById('pitchVal');
+        const convertBtn = document.getElementById('convertBtn');
+        const loadingState = document.getElementById('loadingState');
+        const statusBox = document.getElementById('statusBox');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const modelPath = document.getElementById('modelPath');
+        const indexPath = document.getElementById('indexPath');
+        const isHalf = document.getElementById('isHalf');
+        const noiseReduce = document.getElementById('noiseReduce');
+        const autotune = document.getElementById('autotune');
+        const splitAudio = document.getElementById('splitAudio');
+        const indexStrength = document.getElementById('indexStrength');
+        const indexStrengthVal = document.getElementById('indexStrengthVal');
+        const protect = document.getElementById('protect');
+        const protectVal = document.getElementById('protectVal');
+        const rmsMixRate = document.getElementById('rmsMixRate');
+        const rmsVal = document.getElementById('rmsVal');
+        const hopLength = document.getElementById('hopLength');
+        const hopVal = document.getElementById('hopVal');
+        const cleanStrength = document.getElementById('cleanStrength');
+        const cleanVal = document.getElementById('cleanVal');
+        const autotuneStrength = document.getElementById('autotuneStrength');
+        const autotuneVal = document.getElementById('autotuneVal');
+        const hopLengthBox = document.getElementById('hopLengthBox');
+        const cleanStrengthBox = document.getElementById('cleanStrengthBox');
+        const autotuneStrengthBox = document.getElementById('autotuneStrengthBox');
+
+        // Helper functions
+        function setStatus(message, type = 'info') {
+            statusBox.textContent = message;
+            statusBox.className = 'status-box';
+            if (type === 'success') statusBox.classList.add('success');
+            else if (type === 'warning') statusBox.classList.add('warning');
+            else if (type === 'error') statusBox.classList.add('error');
+        }
+
+        function updateSliderLabels() {
+            pitchVal.textContent = pitchSlider.value;
+            indexStrengthVal.textContent = parseFloat(indexStrength.value).toFixed(2);
+            protectVal.textContent = parseFloat(protect.value).toFixed(2);
+            rmsVal.textContent = parseFloat(rmsMixRate.value).toFixed(1);
+            hopVal.textContent = hopLength.value;
+            cleanVal.textContent = parseFloat(cleanStrength.value).toFixed(2);
+            autotuneVal.textContent = parseFloat(autotuneStrength.value).toFixed(2);
+        }
+
+        function refreshSliderVisibility() {
+            const method = f0Method.value;
+            const hopLengthMethods = [
+                'mangio-crepe-tiny', 'mangio-crepe-small', 'mangio-crepe-medium',
+                'mangio-crepe-large', 'mangio-crepe-full', 'fcpe', 'fcpe-legacy',
+                'yin', 'pyin'
+            ];
+            
+            hopLengthBox.classList.toggle('hidden', !hopLengthMethods.includes(method));
+            cleanStrengthBox.classList.toggle('hidden', !noiseReduce.checked);
+            autotuneStrengthBox.classList.toggle('hidden', !autotune.checked);
+        }
+
+        // Load models from API
+        async function loadModels() {
+            try {
+                const response = await fetch(`${API_BASE}/models`);
+                if (!response.ok) throw new Error('Failed to load models');
+                const data = await response.json();
+                
+                const current = modelPath.value;
+                modelPath.innerHTML = '<option value="">— Select model —</option>';
+                
+                data.models.forEach(model => {
+                    const opt = document.createElement('option');
+                    opt.value = model.path;
+                    opt.textContent = model.name;
+                    if (model.index_path) opt.dataset.index = model.index_path;
+                    modelPath.appendChild(opt);
+                });
+                
+                if (current && Array.from(modelPath.options).some(o => o.value === current)) {
+                    modelPath.value = current;
+                }
+                
+                return data.models;
+            } catch (error) {
+                console.error('Error loading models:', error);
+                setStatus('Failed to load models: ' + error.message, 'error');
+                return [];
+            }
+        }
+
+        // Load F0 methods
+        async function loadF0Methods() {
+            try {
+                const response = await fetch(`${API_BASE}/f0_methods`);
+                if (!response.ok) throw new Error('Failed to load F0 methods');
+                const data = await response.json();
+                
+                f0Method.innerHTML = '';
+                data.methods.forEach(method => {
+                    const opt = document.createElement('option');
+                    opt.value = method;
+                    opt.textContent = method;
+                    if (method === 'rmvpe') opt.selected = true;
+                    f0Method.appendChild(opt);
+                });
+            } catch (error) {
+                console.error('Error loading F0 methods:', error);
+            }
+        }
+
+        // Load embedders
+        async function loadEmbedders() {
+            try {
+                const response = await fetch(`${API_BASE}/embedders`);
+                if (!response.ok) throw new Error('Failed to load embedders');
+                const data = await response.json();
+                
+                embedder.innerHTML = '';
+                data.embedders.forEach(emb => {
+                    const opt = document.createElement('option');
+                    opt.value = emb;
+                    opt.textContent = emb;
+                    if (emb === 'hubert_base') opt.selected = true;
+                    embedder.appendChild(opt);
+                });
+            } catch (error) {
+                console.error('Error loading embedders:', error);
+            }
+        }
+
+        // Handle file selection
+        audioFile.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                fileName.textContent = this.files[0].name;
+                const baseName = this.files[0].name.replace(/\.[^.]+$/, '');
+                outputPath.value = `${baseName}_RVC.wav`;
+                setStatus(`Selected: ${this.files[0].name}`, 'info');
+            }
+        });
+
+        // Model selection auto-fills index
+        modelPath.addEventListener('change', function() {
+            const selected = this.options[this.selectedIndex];
+            if (selected && selected.dataset.index) {
+                indexPath.value = selected.dataset.index;
+            } else {
+                // Try to find index in same directory
+                if (this.value) {
+                    const dir = this.value.substring(0, this.value.lastIndexOf('/'));
+                    // We'll let the API handle index detection
+                }
+                indexPath.value = '';
+            }
+        });
+
+        // Refresh models
+        refreshBtn.addEventListener('click', async function() {
+            this.disabled = true;
+            setStatus('Refreshing models...', 'info');
+            await loadModels();
+            this.disabled = false;
+            setStatus('Models refreshed', 'success');
+        });
+
+        // Convert
+        convertBtn.addEventListener('click', async function() {
+            const file = audioFile.files[0];
+            if (!file) {
+                setStatus('Please select an audio file', 'warning');
+                return;
+            }
+            
+            const model = modelPath.value;
+            if (!model) {
+                setStatus('Please select a model', 'warning');
+                return;
+            }
+            
+            // Prepare form data
+            const formData = new FormData();
+            formData.append('audio', file);
+            formData.append('model_path', model);
+            formData.append('index_path', indexPath.value || '');
+            formData.append('pitch', pitchSlider.value);
+            formData.append('filter_radius', '3');
+            formData.append('index_rate', indexStrength.value);
+            formData.append('volume_envelope', rmsMixRate.value);
+            formData.append('protect', protect.value);
+            formData.append('hop_length', hopLength.value);
+            formData.append('f0_method', f0Method.value);
+            formData.append('embedder_model', embedder.value);
+            formData.append('export_format', 'wav');
+            formData.append('resample_sr', '0');
+            formData.append('f0_autotune', autotune.checked);
+            formData.append('f0_autotune_strength', autotuneStrength.value);
+            formData.append('split_audio', splitAudio.checked);
+            formData.append('clean_audio', noiseReduce.checked);
+            formData.append('clean_strength', cleanStrength.value);
+            formData.append('is_half', isHalf.checked);
+            formData.append('cpu_mode', 'false');
+            
+            // UI feedback
+            this.disabled = true;
+            loadingState.classList.remove('hidden');
+            setStatus('Converting... please wait', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/convert`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Conversion failed');
+                }
+                
+                // Download the converted file
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `converted_${file.name.replace(/\.[^.]+$/, '.wav')}`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                setStatus('Conversion completed successfully!', 'success');
+            } catch (error) {
+                console.error('Conversion error:', error);
+                setStatus('Error: ' + error.message, 'error');
+            } finally {
+                this.disabled = false;
+                loadingState.classList.add('hidden');
+            }
+        });
+
+        // Event listeners for sliders
+        [pitchSlider, indexStrength, protect, rmsMixRate, hopLength, cleanStrength, autotuneStrength].forEach(slider => {
+            slider.addEventListener('input', updateSliderLabels);
+        });
+        
+        f0Method.addEventListener('change', refreshSliderVisibility);
+        noiseReduce.addEventListener('change', refreshSliderVisibility);
+        autotune.addEventListener('change', refreshSliderVisibility);
+
+        // Initialize
+        async function init() {
+            await Promise.all([
+                loadF0Methods(),
+                loadEmbedders(),
+                loadModels()
+            ]);
+            updateSliderLabels();
+            refreshSliderVisibility();
+            setStatus('Ready. Select audio and model to begin.', 'info');
+            
+            // Check API health
+            try {
+                const response = await fetch(`${API_BASE}/`);
+                if (response.ok) {
+                    console.log('API is running');
+                }
+            } catch (error) {
+                console.error('API not reachable:', error);
+                setStatus('⚠️ API not reachable. Make sure server is running on port 8000', 'error');
+            }
+        }
+        
+        init();
+    </script>
+</body>
+</html>
