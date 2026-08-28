@@ -9,7 +9,6 @@ einops>=0.8.0
 librosa>=0.10.2
 praat-parselmouth
 soundfile>=0.13.0
-numpy>=1.25.2,<2.0.0
 numba>=0.57.0
 scipy>=1.15.0
 requests>=2.32.3
@@ -22,3 +21,4 @@ IPython
 beautifulsoup4
 pycryptodome>=3.9.6,<4.0.0
 gradio
+numpy>=1.25.2,<2.0.0
