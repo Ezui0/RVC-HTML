@@ -214,7 +214,7 @@
                 <div class="form-group file-input-wrapper">
                     <label>Input Audio</label>
                     <div class="file-label" id="fileLabel">
-                        <i class="fas fa-upload"></i> Choose audio file
+                        📁 Choose audio file
                     </div>
                     <input type="file" id="audioFile" accept=".wav,.mp3,.flac,.ogg,.opus,.m4a,.mp4,.aac,.alac,.wma,.aiff,.webm,.ac3">
                 </div>
@@ -269,7 +269,7 @@
                 </div>
                 
                 <button class="btn btn-success" id="convertBtn">
-                    <i class="fas fa-play"></i> Convert
+                    🎵 Convert
                 </button>
                 
                 <div id="status" class="status info">Ready</div>
@@ -285,7 +285,7 @@
                 
                 <div class="model-select">
                     <button class="btn btn-danger" id="refreshBtn" style="width:100%; margin-bottom:10px;">
-                        <i class="fas fa-sync"></i> Refresh Models
+                        🔄 Refresh Models
                     </button>
                     <div class="form-group">
                         <label>Model Path</label>
@@ -355,6 +355,18 @@
             </div>
         </div>
     </div>
+
+    <!-- Connection watchdog: if the gradio client module never runs (CDN blocked/slow),
+         the status would stay stuck on "Ready" with no clue. Give a visible hint. -->
+    <script>
+        setTimeout(function () {
+            var s = document.getElementById('status');
+            if (s && s.textContent === 'Ready') {
+                s.textContent = '⚠ Still not connected — the gradio client failed to load. Check your internet connection / server console.';
+                s.className = 'status warning';
+            }
+        }, 10000);
+    </script>
 
     <!-- Gradio JS Client -->
     <script type="importmap">
@@ -511,9 +523,9 @@
         // Refresh button
         refreshBtn.addEventListener('click', async () => {
             refreshBtn.disabled = true;
-            refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+            refreshBtn.innerHTML = '⏳ Loading...';
             await refreshModels();
-            refreshBtn.innerHTML = '<i class="fas fa-sync"></i> Refresh Models';
+            refreshBtn.innerHTML = '🔄 Refresh Models';
             refreshBtn.disabled = false;
         });
         
