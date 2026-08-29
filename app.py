@@ -1,8 +1,11 @@
 # server.py
 import os
 import sys
+import socket
+import time
 import uuid
 import torch
+import httpx
 import logging
 import warnings
 from pathlib import Path
@@ -116,6 +119,30 @@ async def get_frontend():
         return HTMLResponse(content=html_path.read_text(encoding="utf-8"))
     return HTMLResponse(content="<h1>RVC Voice Converter</h1><p>Frontend file not found.</p>")
 
+def wait_for_share_server(max_wait_s: int = 300, delay_s: int = 15) -> bool:
+    """Gradio's share server is occasionally unreachable ("Could not create share link"),
+    which makes launch() silently fall back to a local-only URL that Colab users cannot
+    open. The outage is transient, so wait for it to come back before launching."""
+    deadline = time.time() + max_wait_s
+    while True:
+        try:
+            # Same endpoint gradio itself uses to get the share (frpc) tunnel server
+            payload = httpx.get(
+                "https://api.gradio.app/v3/tunnel-request", timeout=30
+            ).json()[0]
+            with socket.create_connection(
+                (payload["host"], int(payload["port"])), timeout=10
+            ):
+                return True
+        except Exception:
+            if time.time() >= deadline:
+                return False
+            print(f"[WARNING] Gradio share server unreachable, retrying in {delay_s}s ...")
+            time.sleep(delay_s)
+
 # Run the server
 if __name__ == "__main__":
+    wait_s = int(os.getenv("SHARE_WAIT_S", "300"))
+    if not wait_for_share_server(max_wait_s=wait_s):
+        print("[WARNING] Share server still unreachable — launching anyway (local URL only).")
     app.launch(show_error=True, server_name="0.0.0.0", server_port=7860, share=True)
