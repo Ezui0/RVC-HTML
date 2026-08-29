@@ -20,5 +20,5 @@ ipywidgets
 IPython
 beautifulsoup4
 pycryptodome>=3.9.6,<4.0.0
-gradio
+gradio>=6.26.0
 numpy>=1.25.2,<2.0.0

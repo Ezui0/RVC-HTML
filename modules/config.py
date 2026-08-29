@@ -11,6 +11,7 @@ def singleton(cls):
 
     def get_instance(*args, **kwargs):
         if cls not in instances: instances[cls] = cls(*args, **kwargs)
+        else: instances[cls].__init__(*args, **kwargs)  # re-apply so changed args (is_half, cpu_mode) are honored
         return instances[cls]
 
     return get_instance
@@ -19,10 +20,11 @@ def singleton(cls):
 class Config:
     def __init__(self, cpu_mode=False, is_half=False):
         self.device = "cuda:0" if torch.cuda.is_available() else ("ocl:0" if opencl.is_available() else "cpu")
-        self.is_half = is_half
         self.gpu_mem = None
         self.cpu_mode = cpu_mode
         if cpu_mode: self.device = "cpu"
+        # Half precision is only safe on CUDA; CPU and MPS must stay fp32
+        self.is_half = is_half and not cpu_mode and self.device == "cuda:0"
 
     def device_config(self):
         if not self.cpu_mode:

@@ -1,6 +1,7 @@
 # server.py
 import os
 import sys
+import uuid
 import torch
 import logging
 import warnings
@@ -20,16 +21,9 @@ sys.path.append(os.getcwd())
 for l in ["torch", "faiss", "omegaconf", "httpx", "httpcore", "faiss.loader", "numba.core", "urllib3", "transformers", "matplotlib"]:
     logging.getLogger(l).setLevel(logging.ERROR)
 
-# Global state for model caching
-MODEL_CACHE = {}
 app = Server()
-
-# Helper function to ensure model is loaded
-def get_model(model_path):
-    if model_path not in MODEL_CACHE:
-        # Your model loading logic from VoiceConverter
-        MODEL_CACHE[model_path] = True  # Placeholder - implement actual loading
-    return MODEL_CACHE[model_path]
+# NOTE: model caching is handled in modules/inference.py (_CONVERTER_CACHE),
+# so each .pth model is loaded into memory only once across requests.
 
 @app.api(name="convert_audio")
 def convert_audio(
@@ -59,12 +53,10 @@ def convert_audio(
     Returns the converted audio file.
     """
     try:
-        # Prepare input and output paths
+        # Prepare input and output paths (unique name avoids collisions between requests)
         input_path = audio_file["path"]
-        output_path = input_path.rsplit(".", 1)[0] + f"_converted.{export_format}"
-        
-        # Get the model (cached)
-        get_model(model_path)
+        stem = input_path.rsplit(".", 1)[0]
+        output_path = f"{stem}_converted_{uuid.uuid4().hex[:8]}.{export_format}"
         
         # Run inference
         run_inference_script(
@@ -91,9 +83,12 @@ def convert_audio(
             clean_strength=clean_strength
         )
         
+        if not os.path.exists(output_path):
+            raise RuntimeError("Conversion failed: no output file was produced")
+
         return FileData(path=output_path)
     except Exception as e:
-        raise RuntimeError(f"Conversion failed: {str(e)}")
+        raise RuntimeError(f"Conversion failed: {e}")
 
 @app.api(name="list_models")
 def list_models() -> list:

@@ -93,8 +93,8 @@ def gdown_download(url=None, id=None, output=None):
     try:
         for chunk in res.iter_content(chunk_size=512 * 1024):
             f.write(chunk)
-            if tmp_file: f.close()
     finally:
+        f.close()
         os.rename(tmp_file, output)
         sess.close()
     return output

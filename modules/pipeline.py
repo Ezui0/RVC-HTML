@@ -35,8 +35,8 @@ class Pipeline:
 
     def voice_conversion(self, model, net_g, sid, audio0, pitch, pitchf, index, big_npy, index_rate, version, protect, energy):
         feats = (torch.from_numpy(audio0).half() if self.is_half else torch.from_numpy(audio0).float())
-        pitch_guidance = pitch != None and pitchf != None
-        energy_use = energy != None
+        pitch_guidance = pitch is not None and pitchf is not None
+        energy_use = energy is not None
 
         if feats.dim() == 2: feats = feats.mean(-1)
         assert feats.dim() == 1, feats.dim()
@@ -121,9 +121,9 @@ class Pipeline:
         hop_length, 
         energy_use=False,
         f0_autotune=False, 
-        f0_autotune_strength=False
+        f0_autotune_strength=1
     ):
-        if file_index != "" and os.path.exists(file_index) and index_rate != 0:
+        if file_index and os.path.exists(file_index) and index_rate != 0:
             try:
                 index = faiss.read_index(file_index)
                 big_npy = index.reconstruct_n(0, index.ntotal)
@@ -152,7 +152,8 @@ class Pipeline:
         p_len = audio_pad.shape[0] // self.window
 
         if pitch_guidance:
-            if not hasattr(self, "f0_generator"): self.f0_generator = Generator(self.sample_rate, hop_length, self.f0_min, self.f0_max, self.is_half, self.device)
+            # Recreate the generator when hop_length changes between requests
+            if not hasattr(self, "f0_generator") or self.f0_generator.hop_length != hop_length: self.f0_generator = Generator(self.sample_rate, hop_length, self.f0_min, self.f0_max, self.is_half, self.device)
             pitch, pitchf = self.f0_generator.calculator(f0_method, audio_pad, f0_up_key, p_len, filter_radius, f0_autotune, f0_autotune_strength)
 
             if self.device == "mps": pitchf = pitchf.astype(np.float32)

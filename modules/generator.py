@@ -112,8 +112,9 @@ class Generator:
         return f0
     
     def get_f0_mangio_crepe(self, x, p_len, model="full"):
-        if not hasattr(self, "mangio_crepe"):
-            self.mangio_crepe = CREPE(
+        if not hasattr(self, "mangio_crepe"): self.mangio_crepe = {}
+        if model not in self.mangio_crepe:
+            self.mangio_crepe[model] = CREPE(
                 os.path.join(
                     "models", 
                     f"crepe_{model}.pth"
@@ -127,6 +128,7 @@ class Generator:
                 sample_rate=self.sample_rate, 
                 return_periodicity=False
             )
+        mangio_crepe = self.mangio_crepe[model]
 
         x = x.astype(np.float32)
         x /= np.quantile(np.abs(x), 0.999)
@@ -134,12 +136,13 @@ class Generator:
         audio = torch.unsqueeze(torch.from_numpy(x).to(self.device, copy=True), dim=0)
         if audio.ndim == 2 and audio.shape[0] > 1: audio = torch.mean(audio, dim=0, keepdim=True).detach()
 
-        f0 = self.mangio_crepe.compute_f0(audio.detach(), pad=True)
+        f0 = mangio_crepe.compute_f0(audio.detach(), pad=True)
         return self._resize_f0(f0.squeeze(0).cpu().float().numpy(), p_len)
     
     def get_f0_crepe(self, x, p_len, model="full"):
-        if not hasattr(self, "crepe"):
-            self.crepe = CREPE(
+        if not hasattr(self, "crepe"): self.crepe = {}
+        if model not in self.crepe:
+            self.crepe[model] = CREPE(
                 os.path.join(
                     "models", 
                     f"crepe_{model}.pth"
@@ -153,16 +156,18 @@ class Generator:
                 sample_rate=self.sample_rate, 
                 return_periodicity=True
             )
+        crepe = self.crepe[model]
 
-        f0, pd = self.crepe.compute_f0(torch.tensor(np.copy(x))[None].float(), pad=True)
+        f0, pd = crepe.compute_f0(torch.tensor(np.copy(x))[None].float(), pad=True)
         f0, pd = mean(f0, 3), median(pd, 3)
         f0[pd < 0.1] = 0
 
         return self._resize_f0(f0[0].cpu().numpy(), p_len)
     
     def get_f0_fcpe(self, x, p_len, legacy=False):
-        if not hasattr(self, "fcpe"): 
-            self.fcpe = FCPE(
+        if not hasattr(self, "fcpe"): self.fcpe = {}
+        if legacy not in self.fcpe:
+            self.fcpe[legacy] = FCPE(
                 os.path.join(
                     "models", 
                     ("fcpe_legacy" if legacy else "fcpe") + ".pt"
@@ -177,7 +182,7 @@ class Generator:
                 legacy=legacy
             )
         
-        f0 = self.fcpe.compute_f0(x, p_len)
+        f0 = self.fcpe[legacy].compute_f0(x, p_len)
         return f0
     
     def get_f0_rmvpe(self, x, p_len, legacy=False):

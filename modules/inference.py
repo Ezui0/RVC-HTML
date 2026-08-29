@@ -22,6 +22,14 @@ from modules.utils import check_predictors, check_embedders, load_audio
 for l in ["torch", "faiss", "omegaconf", "httpx", "httpcore", "faiss.loader", "numba.core", "urllib3", "transformers", "matplotlib"]:
     logging.getLogger(l).setLevel(logging.ERROR)
 
+# Cache of loaded VoiceConverters so each model file is only loaded once
+_CONVERTER_CACHE = {}
+
+def _get_converter(config, pth_path):
+    key = (os.path.abspath(pth_path), config.is_half, config.cpu_mode)
+    if key not in _CONVERTER_CACHE: _CONVERTER_CACHE[key] = VoiceConverter(config, pth_path, 0)
+    return _CONVERTER_CACHE[key]
+
 def run_inference_script(
     is_half=False, 
     cpu_mode=False,
@@ -52,7 +60,7 @@ def run_inference_script(
         return
 
     config = Config(is_half=is_half, cpu_mode=cpu_mode)
-    cvt = VoiceConverter(config, pth_path, 0)
+    cvt = _get_converter(config, pth_path)
 
     if os.path.isdir(input_path):
         print("[INFO] Use batch conversion...")
@@ -71,26 +79,29 @@ def run_inference_script(
             print(f"[INFO] Conversion '{audio_path}'...")
             if os.path.exists(output_audio): os.remove(output_audio)
 
-            cvt.convert_audio(
-                audio_input_path=audio_path, 
-                audio_output_path=output_audio, 
-                index_path=index_path, 
-                embedder_model=embedder_model, 
-                pitch=pitch, 
-                f0_method=f0_method, 
-                index_rate=index_rate, 
-                volume_envelope=volume_envelope, 
-                protect=protect, 
-                hop_length=hop_length, 
-                filter_radius=filter_radius, 
-                export_format=export_format, 
-                resample_sr=resample_sr, 
-                f0_autotune=f0_autotune, 
-                f0_autotune_strength=f0_autotune_strength,
-                split_audio=split_audio,
-                clean_audio=clean_audio,
-                clean_strength=clean_strength
-            )
+            try:
+                cvt.convert_audio(
+                    audio_input_path=audio_path, 
+                    audio_output_path=output_audio, 
+                    index_path=index_path, 
+                    embedder_model=embedder_model, 
+                    pitch=pitch, 
+                    f0_method=f0_method, 
+                    index_rate=index_rate, 
+                    volume_envelope=volume_envelope, 
+                    protect=protect, 
+                    hop_length=hop_length, 
+                    filter_radius=filter_radius, 
+                    export_format=export_format, 
+                    resample_sr=resample_sr, 
+                    f0_autotune=f0_autotune, 
+                    f0_autotune_strength=f0_autotune_strength,
+                    split_audio=split_audio,
+                    clean_audio=clean_audio,
+                    clean_strength=clean_strength
+                )
+            except Exception as e:
+                print(f"[ERROR] Skipping '{audio}': {e}")
 
         print("[INFO] Conversion complete.")
     else:
@@ -136,6 +147,7 @@ class VoiceConverter:
         self.version = None 
         self.n_spk = None  
         self.use_f0 = None  
+        self.energy = False
         self.loaded_model = None
         self.vocoder = "Default"
         self.sample_rate = 16000
@@ -176,14 +188,19 @@ class VoiceConverter:
                 self.hubert_model = models.half() if self.config.is_half else models.float()
 
             if split_audio:
-                chunks = cut(
+                chunks = [c for c in cut(
                     audio, 
                     self.sample_rate, 
                     db_thresh=-60, 
                     min_interval=500
-                )  
+                ) if len(c[0]) > 0]
                 print(f"Split Total: {len(chunks)}")
             else: chunks = [(audio, 0, 0)]
+
+            # Normalize the index path once (None-safe)
+            if isinstance(index_path, str) and index_path:
+                index_path = index_path.strip().strip('"').strip("\n").strip('"').strip().replace("trained", "added")
+            else: index_path = ""
 
             converted_chunks = [
                 (
@@ -196,9 +213,7 @@ class VoiceConverter:
                         audio=waveform, 
                         f0_up_key=pitch, 
                         f0_method=f0_method, 
-                        file_index=(
-                            index_path.strip().strip('"').strip("\n").strip('"').strip().replace("trained", "added")
-                        ), 
+                        file_index=index_path, 
                         index_rate=index_rate, 
                         pitch_guidance=self.use_f0, 
                         filter_radius=filter_radius, 
@@ -213,30 +228,37 @@ class VoiceConverter:
                 ) for waveform, start, end in chunks
             ]
 
-            audio_output = restore(
-                converted_chunks, 
-                total_len=len(audio), 
-                dtype=converted_chunks[0][2].dtype
-            ) if split_audio else converted_chunks[0][2]
+            if split_audio:
+                # Chunk positions are in the 16k input domain, converted audio is at tgt_sr:
+                # scale positions/total length so segments are reassembled on the right timeline
+                sr_ratio = self.tgt_sr / self.sample_rate
+                audio_output = restore(
+                    [(int(start * sr_ratio), int(end * sr_ratio), seg) for start, end, seg in converted_chunks], 
+                    total_len=int(len(audio) * sr_ratio), 
+                    dtype=converted_chunks[0][2].dtype
+                )
+            else: audio_output = converted_chunks[0][2]
 
+            out_sr = self.tgt_sr
             if self.tgt_sr != resample_sr and resample_sr > 0: 
                 audio_output = librosa.resample(audio_output, orig_sr=self.tgt_sr, target_sr=resample_sr, res_type="soxr_vhq")
-                self.tgt_sr = resample_sr
+                out_sr = resample_sr
 
             if clean_audio:
                 from modules.noisereduce import reduce_noise
                 audio_output = reduce_noise(
                     y=audio_output, 
-                    sr=self.tgt_sr, 
+                    sr=out_sr, 
                     prop_decrease=clean_strength, 
                     device=self.device
                 ) 
 
-            sf.write(audio_output_path, audio_output, self.tgt_sr, format=export_format)
+            sf.write(audio_output_path, audio_output, out_sr, format=export_format)
         except Exception as e:
             import traceback
             print(traceback.format_exc())
             print(f"[ERROR] An error has occurred: {e}")
+            raise
 
     def get_vc(self, weight_root, sid):
         if sid == "" or sid == []:
@@ -259,7 +281,7 @@ class VoiceConverter:
         self.cpt = None
 
     def load_model(self):
-        if os.path.isfile(self.loaded_model): self.cpt = torch.load(self.loaded_model, map_location="cpu")  
+        if os.path.isfile(self.loaded_model): self.cpt = torch.load(self.loaded_model, map_location="cpu", weights_only=False)  
         else: self.cpt = None
 
     def setup(self):

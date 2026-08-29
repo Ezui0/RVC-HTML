@@ -96,7 +96,7 @@ class CREPE:
         self.f0_max = f0_max
         self.return_periodicity = return_periodicity
         model = CREPE_MODEL(model_size)
-        ckpt = torch.load(model_path, map_location="cpu")
+        ckpt = torch.load(model_path, map_location="cpu", weights_only=False)
         model.load_state_dict(ckpt)
         model.eval()
         self.model = model.to(device)
